@@ -24,6 +24,35 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
 
+  airflow:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.airflow
+    image: sc360-airflow
+    container_name: sc360-airflow
+    command: standalone
+    depends_on:
+      - postgres
+    env_file:
+      - ../.env
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__PARALLELISM: "2"
+      AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_ALL_ADMINS: "true"
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@sc360-postgres:5432/airflow
+      MINIO_ENDPOINT: http://sc360-minio:9000
+      POSTGRES_HOST: sc360-postgres
+      SPARK_DRIVER_MEMORY: 1g
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../airflow/dags:/opt/airflow/dags
+      - ..:/opt/airflow/project
+      - airflow_logs:/opt/airflow/logs
+    mem_limit: 3g
+
 volumes:
   minio_data:
   pg_data:
+  airflow_logs:

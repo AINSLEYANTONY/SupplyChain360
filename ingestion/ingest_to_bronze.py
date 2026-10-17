@@ -14,7 +14,7 @@ load_dotenv()  # reads passwords from your .env file
 
 BUCKET = "supplychain-data"
 SOURCE_DIR = Path("data/sample")
-ENDPOINT = "http://localhost:9000"
+ENDPOINT = os.environ.get("MINIO_ENDPOINT", "http://localhost:9000")
 
 s3 = boto3.client(
     "s3",

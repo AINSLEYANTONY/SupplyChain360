@@ -8,9 +8,10 @@ def get_spark(app_name: str) -> SparkSession:
     spark = (
         SparkSession.builder.appName(app_name)
         .master("local[2]")
-        .config("spark.driver.memory", "2g")
+        .config("spark.driver.memory", os.environ.get("SPARK_DRIVER_MEMORY", "2g"))
         .config("spark.sql.shuffle.partitions", "8")
-        .config("spark.hadoop.fs.s3a.endpoint", "http://host.docker.internal:9000")
+        .config("spark.hadoop.fs.s3a.endpoint",
+                os.environ.get("MINIO_ENDPOINT", "http://host.docker.internal:9000"))
         .config("spark.hadoop.fs.s3a.access.key", os.environ["MINIO_ROOT_USER"])
         .config("spark.hadoop.fs.s3a.secret.key", os.environ["MINIO_ROOT_PASSWORD"])
         .config("spark.hadoop.fs.s3a.path.style.access", "true")
