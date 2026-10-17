@@ -13,3 +13,6 @@ RUN SPARK_JARS=$(python -c "import pyspark, os; print(os.path.join(os.path.dirna
     curl -fsSL -o $SPARK_JARS/aws-java-sdk-bundle-1.12.262.jar https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.262/aws-java-sdk-bundle-1.12.262.jar
 
 WORKDIR /app
+
+RUN SPARK_JARS=$(python -c "import pyspark, os; print(os.path.join(os.path.dirname(pyspark.__file__), 'jars'))") && \
+    curl -fsSL -o $SPARK_JARS/postgresql-42.7.4.jar https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.4/postgresql-42.7.4.jar
