@@ -1,0 +1,146 @@
+version: 2
+
+models:
+  - name: dim_customer
+    description: "One row per customer."
+    columns:
+      - name: customer_key
+        data_tests: [unique, not_null]
+
+  - name: dim_product
+    description: "One row per product."
+    columns:
+      - name: product_key
+        data_tests: [unique, not_null]
+      - name: supplier_key
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_supplier')
+                field: supplier_key
+
+  - name: dim_supplier
+    description: "One row per supplier."
+    columns:
+      - name: supplier_key
+        data_tests: [unique, not_null]
+
+  - name: dim_warehouse
+    description: "One row per warehouse."
+    columns:
+      - name: warehouse_key
+        data_tests: [unique, not_null]
+
+  - name: dim_carrier
+    description: "One row per carrier."
+    columns:
+      - name: carrier_key
+        data_tests: [unique, not_null]
+
+  - name: dim_date
+    description: "One row per calendar day, 2023 to 2026."
+    columns:
+      - name: date_key
+        data_tests: [unique, not_null]
+
+  - name: fact_orders
+    description: "One row per order."
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
+      - name: customer_key
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_customer')
+                field: customer_key
+      - name: order_date_key
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+
+  - name: fact_sales
+    description: "One row per order line, with revenue, cost and profit."
+    columns:
+      - name: sales_key
+        data_tests: [unique, not_null]
+      - name: order_date_key
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+      - name: customer_key
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_customer')
+                field: customer_key
+      - name: product_key
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_product')
+                field: product_key
+      - name: supplier_key
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_supplier')
+                field: supplier_key
+
+  - name: fact_shipments
+    description: "One row per shipment, with delivery time and delay flag."
+    columns:
+      - name: shipment_id
+        data_tests: [unique, not_null]
+      - name: customer_key
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_customer')
+                field: customer_key
+      - name: warehouse_key
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_warehouse')
+                field: warehouse_key
+      - name: carrier_key
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_carrier')
+                field: carrier_key
+      - name: shipping_date_key
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+
+  - name: fact_inventory
+    description: "Stock snapshot per warehouse and product."
+    columns:
+      - name: inventory_key
+        data_tests: [unique, not_null]
+      - name: warehouse_key
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_warehouse')
+                field: warehouse_key
+      - name: product_key
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_product')
+                field: product_key
+      - name: snapshot_date_key
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
