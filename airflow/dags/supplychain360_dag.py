@@ -15,7 +15,7 @@ with DAG(
     dag_id="supplychain360_pipeline",
     description="Bronze -> Silver -> PostgreSQL star schema",
     start_date=datetime(2026, 1, 1),
-    schedule=None,        # run only when we click Trigger (we add a schedule later)
+    schedule="30 12 * * *",   # every day at 06:00 UTC
     catchup=False,
     max_active_runs=1,    # never run two copies at once (protects your 8 GB)
     default_args=default_args,
