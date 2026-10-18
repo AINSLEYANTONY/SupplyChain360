@@ -5,3 +5,7 @@ __pycache__/
 data/sample/*.csv
 data/sample/*.json
 .ipynb_checkpoints/
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+dbt/.user.yml

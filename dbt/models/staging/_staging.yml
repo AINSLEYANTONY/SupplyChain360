@@ -1,0 +1,112 @@
+version: 2
+
+models:
+  - name: stg_suppliers
+    description: "One row per supplier."
+    columns:
+      - name: supplier_id
+        data_tests: [unique, not_null]
+
+  - name: stg_products
+    description: "One row per product."
+    columns:
+      - name: product_id
+        data_tests: [unique, not_null]
+      - name: supplier_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_suppliers')
+                field: supplier_id
+
+  - name: stg_customers
+    description: "One row per customer."
+    columns:
+      - name: customer_id
+        data_tests: [unique, not_null]
+      - name: customer_segment
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["Consumer", "Corporate", "Small Business"]
+
+  - name: stg_warehouses
+    description: "One row per warehouse."
+    columns:
+      - name: warehouse_id
+        data_tests: [unique, not_null]
+
+  - name: stg_inventory
+    description: "Stock level per warehouse and product."
+    columns:
+      - name: warehouse_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_warehouses')
+                field: warehouse_id
+      - name: product_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_products')
+                field: product_id
+
+  - name: stg_orders
+    description: "One row per order (duplicates and missing-customer rows already removed by Spark)."
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
+      - name: customer_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_customers')
+                field: customer_id
+      - name: order_status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["Delivered", "Shipped", "Cancelled", "Processing"]
+
+  - name: stg_order_items
+    description: "One row per product within an order."
+    columns:
+      - name: order_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_orders')
+                field: order_id
+              config:
+                severity: warn      # known orphans: lines of quarantined orders
+      - name: product_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_products')
+                field: product_id
+
+  - name: stg_shipments
+    description: "One row per shipment."
+    columns:
+      - name: shipment_id
+        data_tests: [unique, not_null]
+      - name: order_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_orders')
+                field: order_id
+              config:
+                severity: warn      # known orphans: shipments of quarantined orders
+      - name: carrier
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["BlueDart", "Delhivery", "DTDC", "FedEx"]

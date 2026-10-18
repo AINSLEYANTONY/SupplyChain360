@@ -1,0 +1,15 @@
+version: 2
+
+sources:
+  - name: silver
+    description: "Cleaned tables produced by the Spark job and loaded into Postgres"
+    schema: silver
+    tables:
+      - name: suppliers
+      - name: products
+      - name: customers
+      - name: warehouses
+      - name: inventory
+      - name: orders
+      - name: order_items
+      - name: shipments
