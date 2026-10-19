@@ -4,6 +4,7 @@ from airflow.providers.standard.operators.bash import BashOperator
 from airflow.sdk import DAG
 
 PROJECT = "/opt/airflow/project"
+DBT = "/home/airflow/dbt_venv/bin/dbt"
 
 default_args = {
     "retries": 2,                                  # try again twice if a task fails
@@ -13,11 +14,11 @@ default_args = {
 
 with DAG(
     dag_id="supplychain360_pipeline",
-    description="Bronze -> Silver -> PostgreSQL star schema",
+    description="Bronze -> Silver -> PostgreSQL -> dbt Gold",
     start_date=datetime(2026, 1, 1),
-    schedule="30 12 * * *",   # every day at 06:00 UTC
+    schedule="0 6 * * *",   # every day at 06:00 UTC
     catchup=False,
-    max_active_runs=1,    # never run two copies at once (protects your 8 GB)
+    max_active_runs=1,      # never run two copies at once (protects your 8 GB)
     default_args=default_args,
     tags=["supplychain360"],
 ) as dag:
@@ -37,9 +38,17 @@ with DAG(
         bash_command=f"cd {PROJECT} && python spark/jobs/silver_to_postgres.py",
     )
 
-    build_star_schema = BashOperator(
-        task_id="build_star_schema",
-        bash_command=f"cd {PROJECT} && python warehouse/build_star_schema.py",
+    # Builds staging -> intermediate -> gold AND runs all tests.
+    # One retry only: a failed data test won't fix itself by retrying.
+    dbt_build = BashOperator(
+        task_id="dbt_build",
+        bash_command=f"cd {PROJECT}/dbt && {DBT} build --profiles-dir .",
+        retries=1,
     )
 
-    ingest_to_bronze >> bronze_to_silver >> silver_to_postgres >> build_star_schema
+    dbt_docs = BashOperator(
+        task_id="dbt_docs",
+        bash_command=f"cd {PROJECT}/dbt && {DBT} docs generate --static --profiles-dir .",
+    )
+
+    ingest_to_bronze >> bronze_to_silver >> silver_to_postgres >> dbt_build >> dbt_docs
