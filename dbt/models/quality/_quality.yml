@@ -1,0 +1,11 @@
+version: 2
+
+models:
+  - name: dq_scorecard
+    description: "Per-table row reconciliation for the latest pipeline run: raw rows = duplicates removed + rows in Silver + rows in quarantine."
+    columns:
+      - name: source_table
+        data_tests: [unique, not_null]
+
+  - name: dq_quarantine_summary
+    description: "Number of rejected rows per table and failed rule."

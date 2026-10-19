@@ -37,7 +37,10 @@ with DAG(
         task_id="silver_to_postgres",
         bash_command=f"cd {PROJECT} && python spark/jobs/silver_to_postgres.py",
     )
-
+    quality_to_postgres = BashOperator(
+        task_id="quality_to_postgres",
+        bash_command=f"cd {PROJECT} && python spark/jobs/quality_to_postgres.py",
+    )
     # Builds staging -> intermediate -> gold AND runs all tests.
     # One retry only: a failed data test won't fix itself by retrying.
     dbt_build = BashOperator(
@@ -51,4 +54,4 @@ with DAG(
         bash_command=f"cd {PROJECT}/dbt && {DBT} docs generate --static --profiles-dir .",
     )
 
-    ingest_to_bronze >> bronze_to_silver >> silver_to_postgres >> dbt_build >> dbt_docs
+    ingest_to_bronze >> bronze_to_silver >> silver_to_postgres >> quality_to_postgres >> dbt_build >> dbt_docs

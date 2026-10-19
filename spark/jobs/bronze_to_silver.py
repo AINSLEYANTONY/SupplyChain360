@@ -149,8 +149,7 @@ def process(spark, table, spec):
         print(f"--- {table}: why rows were quarantined ---")
         bad.groupBy("_dq_errors").count().show(truncate=False)
     deduped.unpersist()
-    return n_raw, n_raw - n_dedup, n_dedup - n_bad, n_bad
-
+    return str(latest), n_raw, n_raw - n_dedup, n_dedup - n_bad, n_bad
 
 def main():
     spark = get_spark("sc360-bronze-to-silver")
@@ -161,8 +160,20 @@ def main():
 
     print("\n===== SUMMARY =====")
     print(f"{'table':12} {'raw':>7} {'dups_removed':>13} {'silver':>7} {'quarantined':>12}")
-    for t, raw, dups, ok, bad in summary:
+    for t, run_date, raw, dups, ok, bad in summary:
         print(f"{t:12} {raw:>7,} {dups:>13,} {ok:>7,} {bad:>12,}")
+
+    # Audit trail: save these numbers so Postgres and dbt can check them later
+    stats = spark.createDataFrame(
+        [(run_date, t, raw, dups, ok, bad) for t, run_date, raw, dups, ok, bad in summary],
+        "run_date string, source_table string, raw_rows long, duplicates_removed long, "
+        "silver_rows long, quarantined_rows long",
+    ).withColumn("recorded_at", F.current_timestamp())
+    (stats.write.mode("overwrite")
+          .option("partitionOverwriteMode", "dynamic")  # a rerun replaces only that day's rows
+          .partitionBy("run_date")
+          .parquet(f"{BASE}/quality/run_stats/"))
+    print("\nSaved run statistics to quality/run_stats/")
 
 
 if __name__ == "__main__":

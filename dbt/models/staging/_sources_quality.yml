@@ -1,0 +1,14 @@
+version: 2
+
+sources:
+  - name: quality
+    description: "Run statistics saved by the Spark Silver job"
+    schema: quality
+    tables:
+      - name: run_stats
+
+  - name: quarantine
+    description: "Every record rejected by the data-quality rules"
+    schema: quarantine
+    tables:
+      - name: rejected_records
