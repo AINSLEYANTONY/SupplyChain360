@@ -7,6 +7,10 @@ model-paths: ["models"]
 test-paths: ["tests"]
 macro-paths: ["macros"]
 
+vars:
+  supplier_rating_threshold: 3.5   # suppliers rated below this raise an alert
+  shipment_delay_min_days: 1       # days late before a shipment raises an alert
+
 models:
   supplychain360:
     staging:
@@ -21,3 +25,6 @@ models:
     quality:
       +materialized: table
       +schema: quality
+    alerts:
+      +materialized: table
+      +schema: alerts

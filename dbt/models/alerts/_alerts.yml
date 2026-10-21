@@ -1,0 +1,26 @@
+version: 2
+
+models:
+  - name: alert_low_stock
+    description: "Warehouse and product combinations where stock is below the reorder level."
+  - name: alert_shipment_delays
+    description: "Delivered shipments that took longer than expected."
+  - name: alert_supplier_performance
+    description: "Suppliers whose rating is below the threshold."
+  - name: alerts_all
+    description: "All business alerts in one list, with type, severity and message."
+    columns:
+      - name: alert_type
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["low_stock", "shipment_delay", "supplier_rating"]
+      - name: severity
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["critical", "high", "warning"]
+      - name: entity
+        data_tests: [not_null]
