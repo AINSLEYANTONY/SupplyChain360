@@ -66,6 +66,31 @@ Bad data is caught at three levels and never silently dropped:
 
 Business alerts (low stock, late delivery, weak suppliers) are dbt models in the `alerts` schema. Thresholds live in `dbt/dbt_project.yml`.
 
+## Quick start (Windows)
+
+You need Docker Desktop (at least 4 GB of memory for Docker), Git and Python 3.11 or newer. Power BI Desktop is optional.
+
+```
+git clone https://github.com/AINSLEYANTONY/SupplyChain360.git
+cd SupplyChain360
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+copy .env.example .env
+python data\generate_data.py
+docker compose --env-file .env -f docker/docker-compose.yml up -d --build
+```
+
+The first build takes about 10 minutes. Then:
+
+1. Wait about 2 minutes and open http://localhost:8080 (no login; this is a local setup).
+2. Open the `supplychain360_pipeline` DAG, switch it on, and click **Trigger**. A run takes 10-14 minutes.
+3. View the dbt docs with `python -m http.server 8081 --directory dbt\target`, then open http://localhost:8081/index.html.
+4. In Power BI, connect to `localhost:5433`, database `supplychain_dw`, user `sc360`, password `sc360pass`.
+
+On Mac or Linux, use `source .venv/bin/activate` and `cp`. Instead of `run_dbt.bat`, run
+`docker exec sc360-airflow bash -c "cd /opt/airflow/project/dbt && /home/airflow/dbt_venv/bin/dbt build --profiles-dir ."`.
+
 
 ## Repository layout
 
